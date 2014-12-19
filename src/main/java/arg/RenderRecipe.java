@@ -20,7 +20,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.inventory.GuiContainer;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
@@ -44,17 +44,17 @@ class RenderRecipe extends GuiContainer
         super(new ContainerCraft());
         this.name = name;
         mc = Minecraft.getMinecraft();
-        fontRenderer = mc.fontRenderer;
+        fontRendererObj = mc.fontRendererObj;
 
-        if (TileEntityRenderer.instance.renderEngine == null)
+        if (TileEntityRendererDispatcher.instance.renderEngine == null)
         {
-            TileEntityRenderer.instance.renderEngine = mc.renderEngine;
-            Iterator iterator = TileEntityRenderer.instance.specialRendererMap.values().iterator();
+            TileEntityRendererDispatcher.instance.renderEngine = mc.renderEngine;
+            Iterator iterator = TileEntityRendererDispatcher.instance.mapSpecialRenderers.values().iterator();
 
             while (iterator.hasNext())
             {
                 TileEntitySpecialRenderer tileentityspecialrenderer = (TileEntitySpecialRenderer) iterator.next();
-                tileentityspecialrenderer.setTileEntityRenderer(TileEntityRenderer.instance);
+                tileentityspecialrenderer.func_147497_a(TileEntityRendererDispatcher.instance);
             }
         }
 
@@ -72,12 +72,12 @@ class RenderRecipe extends GuiContainer
 
     /** Draws the screen and all the components in it. */
     @Override
-    public void drawScreen(int par1, int par2, float par3)
+    public void drawScreen(int mouseX, int mouseY, float partialTicks)
     {
         this.drawDefaultBackground();
         int k = this.guiLeft;
         int l = this.guiTop;
-        this.drawGuiContainerBackgroundLayer(par3, par1, par2);
+        this.drawGuiContainerBackgroundLayer(partialTicks, mouseX, mouseY);
         GL11.glDisable(GL12.GL_RESCALE_NORMAL);
         RenderHelper.disableStandardItemLighting();
         GL11.glDisable(GL11.GL_LIGHTING);
@@ -93,17 +93,17 @@ class RenderRecipe extends GuiContainer
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
 
         // crafting result
-        drawSlotInventory((Slot) inventorySlots.inventorySlots.get(0));
+        drawSlot((Slot) inventorySlots.inventorySlots.get(0));
 
         incredientList.clear();
 
         for (int j1 = 1; j1 < inventorySlots.inventorySlots.size(); ++j1)
         {
             Slot slot = (Slot) inventorySlots.inventorySlots.get(j1);
-            drawSlotInventory(slot);
+            drawSlot(slot);
         }
 
-        this.drawGuiContainerForegroundLayer(par1, par2);
+        this.drawGuiContainerForegroundLayer(mouseX, mouseY);
 
         GL11.glPopMatrix();
 
@@ -119,23 +119,23 @@ class RenderRecipe extends GuiContainer
             return;
 
         this.zLevel = 100.0F;
-        itemRenderer.zLevel = 100.0F;
+        itemRender.zLevel = 100.0F;
 
         String s = null;
         if (itemstack.stackSize > 1)
             s = "" + itemstack.stackSize;
 
         GL11.glEnable(GL11.GL_DEPTH_TEST);
-        itemRenderer.renderItemAndEffectIntoGUI(fontRenderer, mc.renderEngine, itemstack, x, y);
-        itemRenderer.renderItemOverlayIntoGUI(fontRenderer, mc.renderEngine, itemstack, x, y, s);
+        itemRender.renderItemAndEffectIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x, y);
+        itemRender.renderItemOverlayIntoGUI(fontRendererObj, mc.renderEngine, itemstack, x, y, s);
 
-        itemRenderer.zLevel = 0.0F;
+        itemRender.zLevel = 0.0F;
         this.zLevel = 0.0F;
     }
 
     /** Draws an inventory slot */
     @Override
-    protected void drawSlotInventory(Slot slot)
+    protected void drawSlot(Slot slot)
     {
         ItemStack itemstack = slot.getStack();
 
@@ -152,16 +152,16 @@ class RenderRecipe extends GuiContainer
 
     protected int getCenteredOffset(String string, int xWidth)
     {
-        return (xWidth - fontRenderer.getStringWidth(string)) / 2;
+        return (xWidth - fontRendererObj.getStringWidth(string)) / 2;
     }
 
     @Override
-    public void drawGuiContainerForegroundLayer(int i, int j)
+    public void drawGuiContainerForegroundLayer(int mouseX, int mouseY)
     {
-        super.drawGuiContainerForegroundLayer(i, j);
+        super.drawGuiContainerForegroundLayer(mouseX, mouseY);
 
         String title = LanguageRegistry.instance().getStringLocalization(getCraftingContainer().craftResult.getStackInSlot(0).getDisplayName());
-        fontRenderer.drawString(title, getCenteredOffset(title, xSize), 5, 0x404040);
+        fontRendererObj.drawString(title, getCenteredOffset(title, xSize), 5, 0x404040);
 
         float scale = 3 / 4F;
 
@@ -183,9 +183,9 @@ class RenderRecipe extends GuiContainer
 
             String name = entry.getKey();
             if (incredientList.size() >= 5)
-                name = fontRenderer.trimStringToWidth(name, (int) ((100 - 10 - 18) * (1F / scale)));
+                name = fontRendererObj.trimStringToWidth(name, (int) ((100 - 10 - 18) * (1F / scale)));
 
-            fontRenderer.drawString(name, x + 18, y + 4, 0x404040);
+            fontRendererObj.drawString(name, x + 18, y + 4, 0x404040);
             drawItemStackAtPosition(entry.getValue(), x, y);
             y += 18;
             item++;
@@ -194,7 +194,7 @@ class RenderRecipe extends GuiContainer
     }
 
     @Override
-    public void drawBackground(int par1)
+    public void drawBackground(int tint)
     {
 
     }
@@ -280,7 +280,7 @@ class RenderRecipe extends GuiContainer
     }
 
     @Override
-    protected void drawGuiContainerBackgroundLayer(float f, int i, int j)
+    protected void drawGuiContainerBackgroundLayer(float partialTicks, int mouseX, int mouseY)
     {
         GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
         GL11.glEnable(GL11.GL_TEXTURE_2D);

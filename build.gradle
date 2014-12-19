@@ -1,22 +1,18 @@
 buildscript {
     repositories {
         mavenCentral()
-		mavenLocal()
+	mavenLocal()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
         }
-        maven {
-            name = 'ForgeFS'
-            url = 'http://files.minecraftforge.net/maven'
-        }
-		maven {
+	maven {
             name = "sonatype"
             url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
     dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:1.0-SNAPSHOT'
+        classpath 'net.minecraftforge.gradle:ForgeGradle:1.2-SNAPSHOT'
     }
 }
 
@@ -35,6 +31,8 @@ archivesBaseName = "ARG"
 
 minecraft {
     version = "${config.version.minecraft}-${config.version.forge}"
+    runDir = "run"
+    mappings = config.version.mappings
 	
 	replaceIn "ARG.java"
 	replace "@MAJOR@", config.version.mod.major
@@ -62,53 +60,34 @@ else {
 }
 
 processResources {
-	from 'build.properties'
-}
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
 
-task copyBuildXml(type: Copy) {
-    from 'build.properties'
-    into 'output'
-}
+    // replace stuff in mcmod.info, nothing else
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
 
-task apiZip(type: Zip) {
-    classifier = 'api'
-    from sourceSets*.allSource
-    include 'arg/api/**'
-    destinationDir = file 'output'
-}
+        // replace version and mcversion
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
 
-artifacts {
-    archives apiZip
+    // copy everything else, thats not the mcmod.info
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+        exclude '*.psd'
+    }
 }
 
 jar {
-    dependsOn copyBuildXml
     classifier = 'universal'
     destinationDir = file 'output'
     manifest {
         attributes "Implementation-Version": version
+        attributes "FMLAT": 'arg_at.cfg'
     }
 }
 
-repositories {
-    maven {
-        name 'ForgeFS'
-        url 'http://files.minecraftforge.net/maven'
-     }
-}
-
-import net.minecraftforge.gradle.tasks.dev.ChangelogTask
-import net.minecraftforge.gradle.common.Constants
-import net.minecraftforge.gradle.delayed.*
-
-if (System.getenv("BUILD_NUMBER") != null) {
-	build.dependsOn "apiZip", "copyBuildXml"
-}
-else
-{
-	build.dependsOn "apiZip", "copyBuildXml"
-}
-
 wrapper {
-    version = "1.8"
+    version = "2.0"
 }

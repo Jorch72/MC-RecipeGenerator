@@ -39,10 +39,10 @@ public class RecipeHelper
             {
                 ItemStack item = recipeInput[slot];
 
-                if ((item != null) && ((item.getItemDamage() == -1) || (item.getItemDamage() == 32767)))
+                if ((item != null) && ((item.getMetadata() == -1) || (item.getMetadata() == 32767)))
                 {
                     item = item.copy();
-                    item.setItemDamage(0);
+                    item.setMetadata(0);
                 }
 
                 int x = slot % shapedRecipe.recipeWidth;
@@ -61,10 +61,10 @@ public class RecipeHelper
             {
                 ItemStack item = (ItemStack) recipeInput.get(slot);
 
-                if ((item != null) && (item.getItemDamage() == -1))
+                if ((item != null) && (item.getMetadata() == -1))
                 {
                     item = item.copy();
-                    item.setItemDamage(0);
+                    item.setMetadata(0);
                 }
 
                 recipeArray[slot + 1] = item;
@@ -99,10 +99,10 @@ public class RecipeHelper
                 {
                     ItemStack item = (ItemStack) recipeSlot;
 
-                    if ((item != null) && (item.getItemDamage() == -1))
+                    if ((item != null) && (item.getMetadata() == -1))
                     {
                         item = item.copy();
-                        item.setItemDamage(0);
+                        item.setMetadata(0);
                     }
 
                     recipeArray[slot + 1] = item;
@@ -144,10 +144,10 @@ public class RecipeHelper
                 {
                     ItemStack item = (ItemStack) recipeSlot;
 
-                    if ((item != null) && (item.getItemDamage() == -1))
+                    if ((item != null) && (item.getMetadata() == -1))
                     {
                         item = item.copy();
-                        item.setItemDamage(0);
+                        item.setMetadata(0);
                     }
 
                     recipeArray[slot + 1] = item;
